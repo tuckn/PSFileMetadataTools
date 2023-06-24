@@ -4,9 +4,14 @@ Obtains properties for a specified file.
 
 .Description
 The properties that can be retrieved are the same as those displayed in Windows Explorer, including file name, size, creation date, modification date, access date, and attributes.
+Returns type [PSCustomObject].
 
 .Parameter FilePath
-A path to the file to be obtain.
+[String] A path to the file to be obtain.
+
+.Parameter PropertyNames
+[String[]] Property name to be obtain.
+You can filter the properties to be retrieved. If nothing is specified, all properties will be returned.
 
 .Example
 PS> Get-FileProperties -FilePath "C:\MyExcelNote.xlsx"
@@ -23,21 +28,29 @@ Availability                :
 ..
 
 .Example
+PS> Get-FileProperties -FilePath "C:\MyExcelNote.xlsx" -PropertyNames "Name","Title","Categories"
+Name                Title                    Categories
+----                -----                    ----------
+MyExcelNote.xlsx    My Excel Note 2023       Private; note
+
+.Example
 PS> Get-FileProperties -FilePath "C:\MyExcelNote.xlsx" | Set-Clipboard
 #>
 $ErrorActionPreference = "Stop"
-Set-StrictMode -Version 2.0
+Set-StrictMode -Version 3.0
 
 function Get-FileProperties {
     [CmdletBinding()]
     Param(
         [Parameter(Position = 0, Mandatory = $true)]
         [ValidateScript({ Test-Path -LiteralPath $_ })]
-        [String] $FilePath
+        [String] $FilePath,
+
+        [Parameter(Position = 2)]
+        [String[]] $PropertyNames=@()
     )
     Process {
-        Write-Host $FilePath
-
+        # Write-Host $FilePath # debug
         $f = $null
         try {
             $f = Get-Item -LiteralPath "$FilePath"
@@ -48,17 +61,27 @@ function Get-FileProperties {
         }
 
         $sh = New-Object -COMObject Shell.Application
-        $parentDir = Split-Path -Path $f
-        $filename = Split-Path -Path $f -Leaf
+        [String] $parentDir = Split-Path -Path $f
+        [String] $filename = Split-Path -Path $f -Leaf
 
-        $shDir = $sh.Namespace($parentDir)
-        $shFile = $shDir.ParseName($filename)
+        [__ComObject] $shDir = $sh.Namespace($parentDir)
+        [__ComObject] $shFile = $shDir.ParseName($filename)
 
         [PSCustomObject] $props = New-Object -TypeName PSObject -Property @{}
 
         0..287 | ForEach-Object {
             if ($shDir.GetDetailsOf($null, $_)) {
                 $propName = $shDir.GetDetailsOf($null, $_)
+
+                if (
+                    ($PropertyNames.Length -gt 0) -and
+                    (-Not (($PropertyNames.Length -eq 1) -and
+                        ([String]::IsNullOrEmpty($PropertyNames[0])))) -and
+                    (-Not ($PropertyNames -icontains $propName))
+                ) {
+                    return
+                }
+
                 $value = $shDir.GetDetailsOf($shFile, $_)
                 # Write-Host "$($propName): $value" # Debug
 

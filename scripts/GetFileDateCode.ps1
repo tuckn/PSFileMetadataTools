@@ -9,7 +9,7 @@ Param(
 )
 
 $ErrorActionPreference = "Continue"
-Set-StrictMode -Version 2.0
+Set-StrictMode -Version 3.0
 
 # FilePath is Foler
 if ((Get-Item -LiteralPath $FilePath).PSIsContainer) {

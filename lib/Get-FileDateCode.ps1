@@ -24,7 +24,7 @@ Created:  2018/11/15 19:44:01
 Modefied: 2021/12/31 18:22:21
 #>
 $ErrorActionPreference = "Stop"
-Set-StrictMode -Version 2.0
+Set-StrictMode -Version 3.0
 
 function Get-FileDateCode {
     [CmdletBinding()]
