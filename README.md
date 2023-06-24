@@ -35,10 +35,10 @@ Name                Title                    Categories
 MyExcelNote.xlsx    My Excel Note 2023       Private; note
 ```
 
-### Get-FilePropertiesInFolder
+### Get-FileProperties
 
 ```powershell
-PS> .\scripts\GetFilesPropertiesInFolder.ps1 "C:\Notes" FilterString ".xls*"
+PS> .\scripts\GetFilesProperties.ps1 "C:\Notes" FilterString ".xls*"
 ...
 ..
 ```

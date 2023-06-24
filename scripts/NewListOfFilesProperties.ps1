@@ -6,14 +6,23 @@ Param(
     [ValidateScript({ (Get-Item $_).PSIsContainer })]
     [String] $Directory,
 
-    [Parameter(Position = 1)]
-    [String] $FilterString = "",
+    [Parameter(Position = 1, Mandatory = $true)]
+    [String] $ListFilePath,
 
     [Parameter(Position = 2)]
-    [switch] $IncludesSubdir,
+    [String] $FilterString = "",
 
     [Parameter(Position = 3)]
-    [String[]] $PropertyNames=@()
+    [switch] $IncludesSubdir,
+
+    [Parameter(Position = 4)]
+    [String[]] $PropertyNames=@(),
+
+    [Parameter(Position = 5)]
+    [String] $ListFileEncoding = "utf8",
+
+    [Parameter(Position = 6)]
+    [switch] $Force
 )
 
 $ErrorActionPreference = "Continue"
@@ -21,13 +30,16 @@ Set-StrictMode -Version 3.0
 
 $params = @{
     Directory = $Directory
+    ListFilePath = $ListFilePath
     FilterString = $FilterString
     IncludesSubdir = $IncludesSubdir
     PropertyNames = $PropertyNames
+    ListFileEncoding = $ListFileEncoding
+    Force = $Force
 }
 
 try {
-    Get-FilesPropertiesInFolder @params
+    New-ListOfFilesProperties @params
 }
 catch {
     Write-Error $_
