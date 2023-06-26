@@ -22,7 +22,10 @@ Param(
     [String] $ListFileEncoding = "utf8",
 
     [Parameter(Position = 6)]
-    [switch] $Force
+    [switch] $Force,
+
+    [Parameter(Position = 7)]
+    [switch] $SmartOverwrite
 )
 
 $ErrorActionPreference = "Continue"
@@ -36,6 +39,7 @@ $params = @{
     PropertyNames = $PropertyNames
     ListFileEncoding = $ListFileEncoding
     Force = $Force
+    SmartOverwrite = $SmartOverwrite
 }
 
 try {

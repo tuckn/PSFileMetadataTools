@@ -53,18 +53,12 @@ function New-ListOfFilesProperties {
         [String] $ListFileEncoding = "utf8",
 
         [Parameter(Position = 6)]
-        [switch] $Force
+        [switch] $Force,
+
+        [Parameter(Position = 7)]
+        [switch] $SmartOverwrite
     )
     Process {
-        if (Test-Path -LiteralPath $ListFilePath) {
-            if ($Force) {
-                Write-Warning "[warn] `The existing list file will be overwrited: `"$($ListFilePath)`""
-            }
-            else {
-                Write-Error "[error] `The list file is existing: `"$($ListFilePath)`". If you want to overwrite this, remove it or use -Force option."
-            }
-        }
-
         # Initializing the list of file properties in the folder
         [List[PSCustomObject]] $list = [List[PSCustomObject]]::new()
 
@@ -82,12 +76,45 @@ function New-ListOfFilesProperties {
             Write-Error $_
         }
 
-        # Writing the list of file properties to the path
+        # Creating a tmp filepath
+        $tmpFilePath = Join-Path -Path $env:TMP -ChildPath ([System.IO.Path]::GetRandomFileName())
+        # Writing the list file to the tmp path
         try {
-            ConvertTo-Json -InputObject $list | Out-File -LiteralPath $ListFilePath -Encoding $ListFileEncoding
+            ConvertTo-Json -InputObject $list | Out-File -LiteralPath $tmpFilePath -Encoding $ListFileEncoding
         }
         catch {
-            Write-Host "[error] $($_.Exception.Message)"
+            Write-Error "[error] occured when writing a tmp file: $($tmpFilePath). Exception.Message: $($_.Exception.Message)"
+        }
+
+        if (Test-Path -LiteralPath $ListFilePath) {
+            if ($SmartOverwrite) {
+                Write-Warning "[warn] The listing file already exists: `"$($ListFilePath)`". If there are any changes to the contents, the file maight be overwritten."
+                # Calculation MD5
+                $md5Original = (Get-FileHash -Path $ListFilePath -Algorithm MD5).Hash
+                $md5New = (Get-FileHash -Path $tmpFilePath -Algorithm MD5).Hash
+
+                # Debuging
+                Write-Host $md5Original
+                Write-Host $md5New
+
+                if ($md5Original -ne $md5New) {
+                    Move-Item -Path $tmpFilePath -Destination $ListFilePath -Force
+                }
+                else {
+                    Write-Host "[info] The list file was not updated because there were no changes to the file contents."
+                }
+            }
+            elseif ($Force) {
+                Write-Warning "[warn] The listing file already exists: `"$($ListFilePath)`". The file will be overwritten.."
+                Move-Item -Path $tmpFilePath -Destination $ListFilePath -Force
+
+            }
+            else {
+                Write-Error "[warn] The listing file already exists: `"$($ListFilePath)`". If you want to overwrite this, remove it or use -Force or -SmartOverwrite option."
+            }
+        }
+        else {
+            Move-Item -Path $tmpFilePath -Destination $ListFilePath -Force
         }
     }
 }

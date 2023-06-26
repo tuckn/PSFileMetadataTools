@@ -42,3 +42,13 @@ PS> .\scripts\GetFilesProperties.ps1 "C:\Notes" FilterString ".xls*"
 ...
 ..
 ```
+
+### New-ListOfFilesProperties
+
+The following command will retrieve the properties of all files in the specified folder and save the results as `metadata.json`.
+
+```powershell
+PS> .\scripts\NewListOfFilesProperties.ps1 -Directory "C:\MyExcelNoteFolder" -PropertyNames "Name","Title","Tags" -ListFilePath "C:\MyExcelNoteFolder\.metadata.json" -SmartOverwrite
+```
+
+Since the `-SmartOverwrite` option is specified, if `metadata.json` already exists, it will be overwritten only when the contents are changed. In this case, the JSON file is not updated, thus reducing the resources of the script triggered by the update.
