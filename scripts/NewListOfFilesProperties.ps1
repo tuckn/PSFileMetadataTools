@@ -1,4 +1,4 @@
-﻿using module "..\GetFileMetadata.psm1"
+﻿using module "..\FileMetadataTools.psm1"
 
 Param(
     [Parameter(Position = 0, Mandatory = $true)]

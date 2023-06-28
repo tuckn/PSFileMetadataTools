@@ -1,4 +1,4 @@
-# PSGetFileMetadata
+# PSFileMetadataTools
 
 ## How to use
 
