@@ -14,12 +14,14 @@ Returns type [PSCustomObject].
 You can filter the properties to be retrieved. If nothing is specified, all properties will be returned.
 
 .Example
+Returns the same file information that Windows Explorer returns. However, modified datetime and created datetime return the universally coordinated datetime in ISO 8601 format. ex: 2016-02-07T09:03:47Z
+
 PS> Get-FileProperties -FilePath "C:\MyExcelNote.xlsx"
 Name                        : MyExcelNote.xlsx
 Size                        : 81.1 KB
 Item type                   : Microsoft Excel Worksheet
-Date modified               : 6/18/2023 9:28 AM
-Date created                : 5/1/2023 3:32 PM
+Date modified               : 2016-02-07T09:03:47Z
+Date created                : 2023-05-01T14:53:38Z
 Date accessed               : 6/24/2023 6:03 AM
 Attributes                  : ALP
 Offline status              :
@@ -28,6 +30,8 @@ Availability                :
 ..
 
 .Example
+You can filter the properties returned by the `PropertyNames` option.
+
 PS> Get-FileProperties -FilePath "C:\MyExcelNote.xlsx" -PropertyNames "Name","Title","Categories"
 Name                Title                    Categories
 ----                -----                    ----------
@@ -68,6 +72,8 @@ function Get-FileProperties {
         [__ComObject] $shFile = $shDir.ParseName($filename)
 
         [PSCustomObject] $props = New-Object -TypeName PSObject -Property @{}
+        [String] $propName = ""
+        [String] $value = ""
 
         0..287 | ForEach-Object {
             if ($shDir.GetDetailsOf($null, $_)) {
@@ -82,11 +88,24 @@ function Get-FileProperties {
                     return
                 }
 
-                $value = $shDir.GetDetailsOf($shFile, $_)
-                # Write-Host "$($propName): $value" # Debug
+                # @NOTE
+                # Shell.Application returns datetime as a string, such as 'Data Created' or 'Data modified'. And it returns only up to the minute.
+                # Example: Data modified: 6/18/2020 9:28 AM
+                # So, use 'Get-Item' to get the datetime
+                if ($propName -eq "Date created") {
+                    # $value = $f.CreationTime.ToString("yyyy-MM-ddTHH:mm:sszzz")
+                    $value = $f.CreationTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+                }
+                elseif ($propName -eq "Date modified") {
+                    $value = $f.LastWriteTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+                }
+                else {
+                    $value = $shDir.GetDetailsOf($shFile, $_)
+                    # Write-Host "$($propName): $value" # Debug
+                }
 
-                $propName = New-Object -TypeName PSNoteProperty -ArgumentList $propName, $value
-                $props.PSObject.Properties.Add($propName)
+                $prop = New-Object -TypeName PSNoteProperty -ArgumentList $propName, $value
+                $props.PSObject.Properties.Add($prop)
             }
         }
 

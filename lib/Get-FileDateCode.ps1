@@ -10,13 +10,13 @@ A path to the file to be obtain.
 
 .Parameter DateFormat
 The date format. For example "yyyy-MM-dd".
-Default is "yyyyMMddTHHmmss+0900".
+Default is "yyyy-MM-ddTHH:mm:sszzz".
 
 .Example
 PS> Get-FileDateCode -FilePath "C:\myphoto.jpg"
 Created:  2018/11/15 19:44:01
 Modefied: 2021/12/31 18:22:21
-20181115T194401
+2018-11-15T19:44:01+09:00
 
 .Example
 PS> Get-FileDateCode -FilePath "C:\myphoto.jpg" -DateFormat "yy-MM-dd" | Set-Clipboard
@@ -34,7 +34,7 @@ function Get-FileDateCode {
         [String] $FilePath,
 
         [Parameter(Position = 1)]
-        [String] $DateFormat = "yyyyMMddTHHmmss" # ISO 8601
+        [String] $DateFormat = "yyyy-MM-ddTHH:mm:sszzz" # ISO 8601
     )
     Process {
         Write-Host $FilePath
